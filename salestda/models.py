@@ -27,10 +27,3 @@ class DailyTrSummary(models.Model):
     num_of_order = models.IntegerField
     total_amount = models.BigIntegerField
 
-class MonthlyTrAgg(object):
-    def __init__(self, num_of_order, total_amount):
-        self.num_of_order = num_of_order
-        self.total_amount = total_amount
-        
-    num_of_order = models.IntegerField
-    total_amount = models.BigIntegerField

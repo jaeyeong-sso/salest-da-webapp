@@ -125,14 +125,12 @@ USE_TZ = True
 # Static files (CSS, JavaScript, Images)
 # https://docs.djangoproject.com/en/1.9/howto/static-files/
 
-#STATIC_ROOT = os.path.join(BASE_DIR, 'collected_statics')
+    # STATIC_URL = '/statics/'
+    # STATIC_ROOT = os.path.join(BASE_DIR, 'statics')
 
-# STATIC_ROOT = '/home/git/salest-da-webapp/salestda/static'
-
-STATIC_URL = '/statics/'
-
-STATIC_ROOT = os.path.join(BASE_DIR, 'statics')
-
+STATIC_URL = '/static/'
+STATIC_ROOT = os.path.join(BASE_DIR, 'salestda')
+ 
 STATICFILES_DIRS = (
     os.path.join(BASE_DIR, 'salestda/static'),
 )

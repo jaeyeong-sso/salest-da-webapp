@@ -1,5 +1,21 @@
 $(function() {
-
+	
+	/*
+		$.ajax({
+			type: "GET",
+			dataType: "json",
+			contentType: "application/json",
+			url: "/salestda/api/monthly_sales_vol",
+			success: function (response) {
+				var json_resp_data = response;
+			},
+        	error: function () {
+				alert("Error loading data! Please try again.");
+			}
+				
+		});
+	*/
+	
     Morris.Area({
         element: 'morris-area-chart',
         data: [{

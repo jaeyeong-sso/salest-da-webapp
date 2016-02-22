@@ -15,10 +15,16 @@ def get_monthly_sales_volumn_data(request):
         #hdfslusterInfo = HdfsClusterInfo.objects.get(pk=1)
         #serializer = HdfsClusterInfoSerializer(hdfslusterInfo)
         
-        list_df = pa.agg_montly_sales_volumn()
+        list_df = pa.agg_montly_sales_volumn(1,10000)
         content = JSONRenderer().render(list_df)
         return Response(content, status=status.HTTP_200_OK)
 
+@api_view(['GET'])
+def get_desc_total_sales_volumn(request):
+    if request.method == 'GET':
+        desc_dict = pa.desc_total_sales_volumn()
+        content = JSONRenderer().render(desc_dict)
+        return Response(content, status=status.HTTP_200_OK)
 
 def index(request):
     return render(request, 'salestda/index.html')

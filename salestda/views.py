@@ -26,6 +26,14 @@ def get_desc_total_sales_volumn(request):
         content = JSONRenderer().render(desc_dict)
         return Response(content, status=status.HTTP_200_OK)
 
+@api_view(['GET'])
+def get_monthly_total_amount_per_product_cate(request):
+    if request.method == 'GET':
+        dictData = pa.agg_montly_total_amount_by_product_cate()
+        content = JSONRenderer().render(dictData)
+        return Response(content, status=status.HTTP_200_OK)
+
+
 def index(request):
     return render(request, 'salestda/index.html')
 

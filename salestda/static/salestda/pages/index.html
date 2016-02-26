@@ -15,6 +15,9 @@
 	<script src="https://ajax.googleapis.com/ajax/libs/jquery/1.6.1/jquery.min.js"></script>
 	<script src="https://cdnjs.cloudflare.com/ajax/libs/js-cookie/2.1.0/js.cookie.min.js"></script>
 	
+	<!-- JSON.stringfy -->	
+	<script src="https://cdnjs.cloudflare.com/ajax/libs/json2/20150503/json2.js"></script>
+	
     <!-- Bootstrap Core CSS -->
     <link href="../bower_components/bootstrap/dist/css/bootstrap.min.css" rel="stylesheet">
 
@@ -76,66 +79,63 @@
 				}	
 			});
 			
-		    Morris.Area({
-		        element: 'per-product-category-sales-volume-chart',
-		        data: [{
-		            period: '2010 Q1',
-		            iphone: 2666,
-		            ipad: null,
-		            itouch: 2647
-		        }, {
-		            period: '2010 Q2',
-		            iphone: 2778,
-		            ipad: 2294,
-		            itouch: 2441
-		        }, {
-		            period: '2010 Q3',
-		            iphone: 4912,
-		            ipad: 1969,
-		            itouch: 2501
-		        }, {
-		            period: '2010 Q4',
-		            iphone: 3767,
-		            ipad: 3597,
-		            itouch: 5689
-		        }, {
-		            period: '2011 Q1',
-		            iphone: 6810,
-		            ipad: 1914,
-		            itouch: 2293
-		        }, {
-		            period: '2011 Q2',
-		            iphone: 5670,
-		            ipad: 4293,
-		            itouch: 1881
-		        }, {
-		            period: '2011 Q3',
-		            iphone: 4820,
-		            ipad: 3795,
-		            itouch: 1588
-		        }, {
-		            period: '2011 Q4',
-		            iphone: 15073,
-		            ipad: 5967,
-		            itouch: 5175
-		        }, {
-		            period: '2012 Q1',
-		            iphone: 10687,
-		            ipad: 4460,
-		            itouch: 2028
-		        }, {
-		            period: '2012 Q2',
-		            iphone: 8432,
-		            ipad: 5713,
-		            itouch: 1791
-		        }],
-		        xkey: 'period',
-		        ykeys: ['iphone', 'ipad', 'itouch'],
-		        labels: ['iPhone', 'iPad', 'iPod Touch'],
-		        pointSize: 2,
-		        hideHover: 'auto',
-		        resize: true
-		    });
+			$.ajax({
+				type: "GET",
+				dataType: "json",
+				contentType: "application/json",
+				url: "/salestda/api/monthly_product_cata_sales_amount",
+				success: function (response) {
+					var jsonObj = $.parseJSON(response);
+					
+					var dataArr = jsonObj.total_amount;
+					var dateKeyArr = [];	
+					
+					$.each(dataArr, function(key, value){
+						for (var key in value) {
+							if(key!='year_month'){
+								dateKeyArr.push(key);
+							}
+						}
+					});
+					
+					var dataUniqueKeyArr = dateKeyArr.filter(function(item,idx,arr){
+					    return idx==arr.indexOf(item);
+					});
+					
+					
+					/*
+					$.each(jsonObj.total_amount, function(key, value) {
+						
+						var year_month = value.year_month;
+						var data = value.data; 
+						
+						$.each(data, function(key, value){
+							var item = value.item;
+							var value = value.value;
+							
+							var str = item + " " + value;
+							alert(str);
+						})
+					})
+					*/
+					
+					Morris.Area({
+					        element: 'per-product-category-sales-volume-chart',
+					        data: dataArr,
+					        xkey: 'year_month',
+					        ykeys: dataUniqueKeyArr,
+					        labels: dataUniqueKeyArr,
+					        pointSize: 2,
+					        hideHover: 'auto',
+					        resize: true
+					});
+				},
+        		error: function () {
+					alert("Error loading data! Please try again.");
+				}	
+			});
+			
+		   
 		    
 			$.ajax({
 				type: "GET",
@@ -425,7 +425,7 @@
                     <!-- /.panel -->
                     <div class="panel panel-default">
                         <div class="panel-heading">
-                            <i class="fa fa-bar-chart-o fa-fw"></i> 메뉴별 매출 기여도(Morris Area Chart)
+                            <i class="fa fa-bar-chart-o fa-fw"></i> 메뉴별 매출 기여도
                         </div>
                         <!-- /.panel-heading -->
                         <div class="panel-body">

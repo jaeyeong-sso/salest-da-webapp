@@ -48,7 +48,10 @@ def get_monthly_total_amount_per_product_cate(request):
 def get_monthly_total_amount_product_cate_detail(request,format=None):
     if request.method == 'POST':
         cateReqParam = request.data['category']
-        dictData = pa.agg_montly_total_amount_by_product(cateReqParam)       
+        if cateReqParam == 'Category':
+            dictData = pa.agg_montly_total_amount_by_product_cate()
+        else:
+            dictData = pa.agg_montly_total_amount_by_product(cateReqParam)       
         content = JSONRenderer().render(dictData)
         return Response(content, status=status.HTTP_200_OK)
     

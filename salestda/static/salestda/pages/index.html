@@ -16,7 +16,7 @@
 	<script src="https://cdnjs.cloudflare.com/ajax/libs/js-cookie/2.1.0/js.cookie.min.js"></script>
 	
 	<!-- JSON.stringfy -->	
-	<script src="https://cdnjs.cloudflare.com/ajax/libs/json2/20150503/json2.js"></script>
+	<script src="http://ajax.cdnjs.com/ajax/libs/json2/20110223/json2.js"></script>
 	
     <!-- Bootstrap Core CSS -->
     <link href="../bower_components/bootstrap/dist/css/bootstrap.min.css" rel="stylesheet">
@@ -44,6 +44,32 @@
     <![endif]-->
 
 	<script type="text/javascript">
+	
+		var menuCategoryItems = [];
+		
+		function selectCategoryItem(element){
+			
+			var selectedItem = $(element).text();
+			$("#menu_cate_items_caption").text(selectedItem);
+			
+			var jsonParams = "{\"category\":\"" + selectedItem + "\"}";
+			
+			$.ajax({
+				type: "POST",
+				data: jsonParams,
+				contentType: 'application/json',
+				dataType: "json",
+				url: "/salestda/api/monthly_product_cate_detail_sales_amount",
+				success: function (response) {
+					var jsonObj = $.parseJSON(response);
+					alert(response);
+				},
+        		error: function () {
+					alert("Error loading data! Please try again.");
+				}	
+			});
+		}	
+		
 		$(function() {
 			
 			$.ajax({
@@ -83,7 +109,7 @@
 				type: "GET",
 				dataType: "json",
 				contentType: "application/json",
-				url: "/salestda/api/monthly_product_cata_sales_amount",
+				url: "/salestda/api/monthly_product_cate_sales_amount",
 				success: function (response) {
 					var jsonObj = $.parseJSON(response);
 					
@@ -98,33 +124,21 @@
 						}
 					});
 					
-					var dataUniqueKeyArr = dateKeyArr.filter(function(item,idx,arr){
+					menuCategoryItems = dateKeyArr.filter(function(item,idx,arr){
 					    return idx==arr.indexOf(item);
 					});
 					
-					
-					/*
-					$.each(jsonObj.total_amount, function(key, value) {
-						
-						var year_month = value.year_month;
-						var data = value.data; 
-						
-						$.each(data, function(key, value){
-							var item = value.item;
-							var value = value.value;
-							
-							var str = item + " " + value;
-							alert(str);
-						})
-					})
-					*/
+					$.each(menuCategoryItems, function(key, value){
+						$("#menu_cate_items_list").append("<li><a href='#' onclick='selectCategoryItem(this);return false;'>" + value + "</a></li>");
+					});
+					$("#menu_cate_items_list").append("<li><a href='#' onclick='selectCategoryItem(this);return false;'>분류별</a></li>");
 					
 					Morris.Area({
 					        element: 'per-product-category-sales-volume-chart',
 					        data: dataArr,
 					        xkey: 'year_month',
-					        ykeys: dataUniqueKeyArr,
-					        labels: dataUniqueKeyArr,
+					        ykeys: menuCategoryItems,
+					        labels: menuCategoryItems,
 					        pointSize: 2,
 					        hideHover: 'auto',
 					        resize: true
@@ -135,8 +149,6 @@
 				}	
 			});
 			
-		   
-		    
 			$.ajax({
 				type: "GET",
 				dataType: "json",
@@ -197,90 +209,6 @@
                         </li>
                         <li>
                             <a href="index.html"><i class="fa fa-dashboard fa-fw"></i> Overall Report</a>
-                        </li>
-                        <li>
-                            <a href="#"><i class="fa fa-bar-chart-o fa-fw"></i> Charts<span class="fa arrow"></span></a>
-                            <ul class="nav nav-second-level">
-                                <li>
-                                    <a href="flot.html">Flot Charts</a>
-                                </li>
-                                <li>
-                                    <a href="morris.html">Morris.js Charts</a>
-                                </li>
-                            </ul>
-                            <!-- /.nav-second-level -->
-                        </li>
-                        <li>
-                            <a href="tables.html"><i class="fa fa-table fa-fw"></i> Tables</a>
-                        </li>
-                        <li>
-                            <a href="forms.html"><i class="fa fa-edit fa-fw"></i> Forms</a>
-                        </li>
-                        <li>
-                            <a href="#"><i class="fa fa-wrench fa-fw"></i> UI Elements<span class="fa arrow"></span></a>
-                            <ul class="nav nav-second-level">
-                                <li>
-                                    <a href="panels-wells.html">Panels and Wells</a>
-                                </li>
-                                <li>
-                                    <a href="buttons.html">Buttons</a>
-                                </li>
-                                <li>
-                                    <a href="notifications.html">Notifications</a>
-                                </li>
-                                <li>
-                                    <a href="typography.html">Typography</a>
-                                </li>
-                                <li>
-                                    <a href="icons.html"> Icons</a>
-                                </li>
-                                <li>
-                                    <a href="grid.html">Grid</a>
-                                </li>
-                            </ul>
-                            <!-- /.nav-second-level -->
-                        </li>
-                        <li>
-                            <a href="#"><i class="fa fa-sitemap fa-fw"></i> Multi-Level Dropdown<span class="fa arrow"></span></a>
-                            <ul class="nav nav-second-level">
-                                <li>
-                                    <a href="#">Second Level Item</a>
-                                </li>
-                                <li>
-                                    <a href="#">Second Level Item</a>
-                                </li>
-                                <li>
-                                    <a href="#">Third Level <span class="fa arrow"></span></a>
-                                    <ul class="nav nav-third-level">
-                                        <li>
-                                            <a href="#">Third Level Item</a>
-                                        </li>
-                                        <li>
-                                            <a href="#">Third Level Item</a>
-                                        </li>
-                                        <li>
-                                            <a href="#">Third Level Item</a>
-                                        </li>
-                                        <li>
-                                            <a href="#">Third Level Item</a>
-                                        </li>
-                                    </ul>
-                                    <!-- /.nav-third-level -->
-                                </li>
-                            </ul>
-                            <!-- /.nav-second-level -->
-                        </li>
-                        <li>
-                            <a href="#"><i class="fa fa-files-o fa-fw"></i> Sample Pages<span class="fa arrow"></span></a>
-                            <ul class="nav nav-second-level">
-                                <li>
-                                    <a href="blank.html">Blank Page</a>
-                                </li>
-                                <li>
-                                    <a href="login.html">Login Page</a>
-                                </li>
-                            </ul>
-                            <!-- /.nav-second-level -->
                         </li>
                     </ul>
                 </div>
@@ -426,6 +354,17 @@
                     <div class="panel panel-default">
                         <div class="panel-heading">
                             <i class="fa fa-bar-chart-o fa-fw"></i> 메뉴별 매출 기여도
+                            <div class="pull-right">
+   								<div class="btn-group">
+                                    <button id="menu_cate_items_caption" type="button" class="btn btn-default btn-xs dropdown-toggle" data-toggle="dropdown">
+										분류별
+                                        <span class="caret"></span>
+                                    </button>
+                                    <ul id="menu_cate_items_list" class="dropdown-menu pull-right" role="menu">
+                                    	<!-- Fill Category Items dynamically -->
+                                    </ul>
+                                </div>
+                            </div>
                         </div>
                         <!-- /.panel-heading -->
                         <div class="panel-body">

@@ -59,7 +59,7 @@ def desc_total_sales_volumn():
     return desc_dfs.to_dict()
     
 
-#################################################################################################33
+#################################################################################################
 
 def agg_montly_num_of_product_by_product_cate():
 
@@ -84,6 +84,7 @@ def agg_montly_num_of_product_by_product_cate():
     
     df_monthly_product_tr = df_daily_product_tr.groupby(['date_mon','product_cate']).apply(aggregation)
 
+    
     def gen_dict_num_of_product(month_rows):
         mothlyDict = {}
         
@@ -104,7 +105,6 @@ def agg_montly_num_of_product_by_product_cate():
     mothlyNumOfProductDict['num_of_product'] = mothlyNumOfProductList
 
     return mothlyNumOfProductDict;
-
 
 
 def agg_montly_total_amount_by_product_cate():
@@ -156,3 +156,90 @@ def agg_montly_total_amount_by_product_cate():
     mothlyTotalAmountDict['total_amount'] = mothlyTotalAmountList
 
     return mothlyTotalAmountDict;
+
+
+#################################################################################################
+
+def agg_montly_total_amount_by_product(product_cate):
+    df_category = make_product_cate_detail_df(product_cate)
+    
+    monthlyDictItems = df_category.apply(gen_dict_total_amount,axis=1)
+    
+    mothlyTotalAmountDict = {}
+    mothlyTotalAmountList = []
+    for item in monthlyDictItems:
+        mothlyTotalAmountList.append(item)
+    mothlyTotalAmountDict['total_amount'] = mothlyTotalAmountList
+    
+    return mothlyTotalAmountDict
+
+
+def make_product_cate_detail_df(product_cate):
+    
+    conn = MySQLdb.connect(host='173.194.254.102', 
+                        port=3306,user='salest', passwd='salest', 
+                        db='salest_database')
+    conn.query("set character_set_connection=utf8;")
+    conn.query("set character_set_server=utf8;")
+    conn.query("set character_set_client=utf8;")
+    conn.query("set character_set_results=utf8;")
+    conn.query("set character_set_database=utf8;")
+
+    df_daily_product_tr = pd_sql.read_frame('select * from daily_product_tr_summary',conn)
+
+    conn.close()
+
+    # Agg Total amoun per Month/Product combination
+
+    df_daily_product_tr['date_mon'] = df_daily_product_tr['date'].apply(lambda date: date.strftime('%Y-%m'))
+    df_daily_product_tr = df_daily_product_tr[df_daily_product_tr.product_cate == product_cate.encode('utf8')]
+
+    column_func_tuple = [('total_amount','sum')]
+    
+    df_monthly_product_tr = df_daily_product_tr.groupby(['date_mon','product_name'])['total_amount'].agg(column_func_tuple)
+    
+    # Overall Top 10 menu items in category 
+    
+    df_topten_products_by_total_amount = df_daily_product_tr.groupby(['product_name']).sum().sort_values(by='total_amount', ascending=False)[:10]
+    df_topten_products_by_total_amount.drop(['id','num_of_product'],axis=1, inplace=True)
+    df_topten_products_by_total_amount.rename(columns={'total_amount':'overall_total_amount'},inplace=True)
+    
+    # Merge the above two dataframes
+    df_new = df_monthly_product_tr.reset_index(level=0)
+    df_merged = pd.merge(df_new, df_topten_products_by_total_amount, left_index=True, right_index=True, how='left').sort_values(by='date_mon', ascending=True)
+        
+    def agg_monthly_items_summary(row):
+        sr_columns = row[row['overall_total_amount'].notnull()].index
+        sr_values = row[row['overall_total_amount'].notnull()]['total_amount']
+
+        etcSum = row[row['overall_total_amount'].isnull()]['total_amount'].sum()
+
+        sr_columns = sr_columns.insert(sr_columns.size,'ETC')
+        sr_etc = pd.Series([etcSum], index=['ETC'])
+        sr_values = sr_values.append(sr_etc)
+
+        return pd.Series(sr_values, index=sr_columns)
+    
+    df_merged_new = df_merged.reset_index(level=0)
+    df_merged_new.groupby(['date_mon'])
+
+    df_agg_monthly_summary = df_merged.groupby(['date_mon']).apply(agg_monthly_items_summary).unstack()
+    df_agg_monthly_summary.fillna(0,inplace=True)
+ 
+    return df_agg_monthly_summary
+
+
+def gen_dict_total_amount(row):
+    
+    monthlyDict = {}
+    monthlyDictStr = "{"
+    for key,value in zip(row.index, row): 
+        monthlyDictStr += "'{0}':{1},".format(key,value)
+    
+    monthlyDictStr = monthlyDictStr[:-1]
+    monthlyDictStr += "}"
+    
+    monthlyDict = ast.literal_eval(monthlyDictStr)
+    monthlyDict['year_month'] = row.name
+ 
+    return monthlyDict

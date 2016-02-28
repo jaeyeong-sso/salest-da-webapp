@@ -1,5 +1,7 @@
 from django.shortcuts import render
 from rest_framework.decorators import api_view
+from rest_framework.decorators import parser_classes
+from rest_framework.parsers import JSONParser
 from rest_framework.response import Response
 
 from salestda.models import HdfsClusterInfo
@@ -8,6 +10,14 @@ from rest_framework.renderers import JSONRenderer
 
 from rest_framework import status
 import PandasAnalysis as pa
+
+from rest_framework import serializers
+
+class SerPostRequestParam(serializers.Serializer):
+    category = serializers.CharField()
+    def getCategory(self):
+        return self.category
+    
 
 @api_view(['GET'])
 def get_monthly_sales_volumn_data(request):
@@ -33,7 +43,15 @@ def get_monthly_total_amount_per_product_cate(request):
         content = JSONRenderer().render(dictData)
         return Response(content, status=status.HTTP_200_OK)
 
-
+@api_view(['POST'])
+@parser_classes((JSONParser,))
+def get_monthly_total_amount_product_cate_detail(request,format=None):
+    if request.method == 'POST':
+        cateReqParam = request.data['category']
+        dictData = pa.agg_montly_total_amount_by_product(cateReqParam)       
+        content = JSONRenderer().render(dictData)
+        return Response(content, status=status.HTTP_200_OK)
+    
 def index(request):
     return render(request, 'salestda/index.html')
 

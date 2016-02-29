@@ -243,3 +243,27 @@ def gen_dict_total_amount(row):
     monthlyDict['year_month'] = row.name
  
     return monthlyDict
+
+
+# day_of_week : W-MON, W-TUE, W-WED, W-THU, W-FRI, W-SAT, W-SUN
+def analysis_timebase_sales_amount(day_of_week):
+    
+    conn = MySQLdb.connect(host='173.194.254.102', 
+                        port=3306,user='salest', passwd='salest', 
+                        db='salest_database')
+
+    df_db_table = pd_sql.read_sql(('select * from daily_timebase_agg'),conn, index_col=['date'], parse_dates=['date'])
+    conn.close()
+
+    df_db_table.drop(['id'],axis=1, inplace=True)
+    
+    if(day_of_week=='All'):
+        return df_db_table.apply(lambda row: round(row.mean())).to_dict()
+    else:
+        first_date = df_db_table.index[0].strftime('%m/%d/%Y')
+        last_date = df_db_table.index[-1].strftime('%m/%d/%Y')
+        target_date_idx = pd.date_range(first_date,last_date, freq=day_of_week)
+        df_selected_by_day = df_db_table.ix[target_date_idx]
+        df_selected_by_day.dropna(how='all',inplace='True')
+        return df_selected_by_day.apply(lambda row: round(row.mean())).to_dict()
+    

@@ -55,6 +55,15 @@ def get_monthly_total_amount_product_cate_detail(request,format=None):
         content = JSONRenderer().render(dictData)
         return Response(content, status=status.HTTP_200_OK)
     
+@api_view(['POST'])
+@parser_classes((JSONParser,))
+def get_timebase_sales_amount_info(request,format=None):
+    if request.method == 'POST':
+        reqParam = request.data['dayOfWeek']
+        dictData = pa.analysis_timebase_sales_amount(reqParam)
+        content = JSONRenderer().render(dictData)
+        return Response(content, status=status.HTTP_200_OK)
+    
 def index(request):
     return render(request, 'salestda/index.html')
 

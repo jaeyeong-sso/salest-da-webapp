@@ -47,6 +47,8 @@
 		
 		var selectCategoryItem;
 		var reverseArr;
+		var selectDayOfWeekItem;
+		var sortObjectByKey;
 		
 		$(function() {
 			
@@ -122,6 +124,71 @@
 					}	
 				});
 			}
+			
+			
+			selectDayOfWeekItem = function(element){
+				
+				var selectedItem;
+				var jsonParams;
+				
+				if(element==null){
+					selectedItem = 'All';
+				} else {
+					selectedItem = $(element).text();
+					$("#timebase_sales_amount_items_caption").text(selectedItem);	
+				}
+				
+				jsonParams = "{\"dayOfWeek\":\"" + selectedItem + "\"}";
+				
+				$.ajax({
+					type: "POST",
+					data: jsonParams,
+					contentType: 'application/json',
+					dataType: "json",
+					url: "/salestda/api/timebase_sales_amount",
+					success: function (response) {
+						var jsonObj = $.parseJSON(response);
+						
+						jsonObj = sortObjectByKey(jsonObj);
+						
+						$("#list_timebase_sales_amount").children().remove();
+						
+						var keyTimeRange;
+						
+						$.each(jsonObj, function(key, value){
+							rangeStartTime = parseInt(key.replace('H',''));
+							rangeEndTime = rangeStartTime + 1;
+							keyTimeRange = rangeStartTime + ":00" + "~"  + rangeEndTime + ":00";
+							
+							var strHtmlItem = '<a href="#" class="list-group-item">'+
+								keyTimeRange + '<span class="pull-right text-muted small"><i class="fa fa-krw fa-fw"></i><em>' + value + '</em></span></a>';			
+							$("#list_timebase_sales_amount").append(strHtmlItem);
+						});
+					},
+	        		error: function () {
+						alert("Error loading data! Please try again.");
+					}	
+				});
+			}
+				
+			sortObjectByKey = function(obj){
+			    var keys = [];
+			    var sorted_obj = {};
+
+			    for(var key in obj){
+			        if(obj.hasOwnProperty(key)){
+			            keys.push(key);
+			        }
+			    }
+			    // sort keys
+			    keys.sort();
+			    // create new array based on Sorted Keys
+			    jQuery.each(keys, function(i, key){
+			        sorted_obj[key] = obj[key];
+			    });
+			    return sorted_obj;
+			}
+			
 			
 			$.ajax({
 				type: "GET",
@@ -225,6 +292,8 @@
 					alert("Error loading data! Please try again.");
 				}
 			});
+			
+			selectDayOfWeekItem(null);
 		})
 		
 	</script>
@@ -434,24 +503,47 @@
                 <div class="col-lg-4">
                     <div class="panel panel-default">
                         <div class="panel-heading">
-                            <i class="glyphicon glyphicon-time"></i> 시간대 별 판매량
+                            <i class="glyphicon glyphicon-time"></i> 시간대 별 평균 판매액
+                            <div class="pull-right">
+   								<div class="btn-group">
+                                    <button id="timebase_sales_amount_items_caption" type="button" class="btn btn-default btn-xs dropdown-toggle" data-toggle="dropdown">
+										All
+                                        <span class="caret"></span>
+                                    </button>
+                                    <ul id="timebase_sales_amount_items_list" class="dropdown-menu pull-right" role="menu">
+                                    	<!-- Fill Category Items dynamically -->
+                                    	<li><a href='#' onclick='selectDayOfWeekItem(this);return false;'>W-MON</a></li>
+										<li><a href='#' onclick='selectDayOfWeekItem(this);return false;'>W-TUE</a></li>
+										<li><a href='#' onclick='selectDayOfWeekItem(this);return false;'>W-WED</a></li>
+										<li><a href='#' onclick='selectDayOfWeekItem(this);return false;'>W-THU</a></li>
+										<li><a href='#' onclick='selectDayOfWeekItem(this);return false;'>W-FRI</a></li>
+										<li><a href='#' onclick='selectDayOfWeekItem(this);return false;'>W-SAT</a></li>
+										<li><a href='#' onclick='selectDayOfWeekItem(this);return false;'>W-SUN</a></li>
+										<li><a href='#' onclick='selectDayOfWeekItem(this);return false;'>All</a></li>
+                                    </ul>
+                                </div>
+                            </div>
                         </div>
                         <!-- /.panel-heading -->
                         <div class="panel-body">
-                            <div class="list-group">
-                                <a href="#" class="list-group-item">
-                                    AM:10~11
-                                    <span class="pull-right text-muted small"><em>4 minutes ago</em>
-                                    </span>
-                                </a>
-                                <a href="#" class="list-group-item">
-                                    AM:11~12
-                                    <span class="pull-right text-muted small"><em>12 minutes ago</em>
-                                    </span>
-                                </a>
+                            <div id="list_timebase_sales_amount" class="list-group">
+	                            <!--
+	                                <a href="#" class="list-group-item">
+	                                    AM:10~11
+	                                    <span class="pull-right text-muted small"><em>4 minutes ago</em>
+	                                    </span>
+	                                </a>
+	                                <a href="#" class="list-group-item">
+	                                    AM:11~12
+	                                    <span class="pull-right text-muted small"><em>12 minutes ago</em>
+	                                    </span>
+	                                </a>
+	                            -->
                             </div>
                             <!-- /.list-group -->
+							<!--                            
                             <a href="#" class="btn btn-default btn-block">View All Alerts</a>
+                        	-->
                         </div>
                         <!-- /.panel-body -->
                     </div>

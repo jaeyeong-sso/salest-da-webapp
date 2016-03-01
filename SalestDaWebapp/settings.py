@@ -128,18 +128,23 @@ USE_TZ = True
     # STATIC_URL = '/statics/'
     # STATIC_ROOT = os.path.join(BASE_DIR, 'statics')
 
-#1. For Dev run    
+######################################################################
+#1. For Dev run
+######################################################################
+#STATIC_URL = '/static/'
+#STATIC_ROOT = os.path.join(BASE_DIR, 'salestda')
+
+######################################################################
+#2. For Deployment
+######################################################################
+STATIC_ROOT = os.path.join(BASE_DIR, 'statics')   # collectstatic would generate static resource to here.
 STATIC_URL = '/static/'
-STATIC_ROOT = os.path.join(BASE_DIR, 'salestda')
 
+STATICFILES_DIRS = (
+    os.path.join(BASE_DIR, 'salestda/static'),
+)
+######################################################################
 
-#2. For Deployment  
-# STATIC_ROOT = os.path.join(BASE_DIR, 'statics')   # collectstatic would generate static resource to here.
-# STATIC_URL = '/static/'
-
-#STATICFILES_DIRS = (
-#    os.path.join(BASE_DIR, 'salestda/static'),
-#)
 
 
 STATICFILES_FINDERS = (

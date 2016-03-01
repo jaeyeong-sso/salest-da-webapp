@@ -44,33 +44,151 @@
     <![endif]-->
 
 	<script type="text/javascript">
-	
-		var menuCategoryItems = [];
 		
-		function selectCategoryItem(element){
-			
-			var selectedItem = $(element).text();
-			$("#menu_cate_items_caption").text(selectedItem);
-			
-			var jsonParams = "{\"category\":\"" + selectedItem + "\"}";
-			
-			$.ajax({
-				type: "POST",
-				data: jsonParams,
-				contentType: 'application/json',
-				dataType: "json",
-				url: "/salestda/api/monthly_product_cate_detail_sales_amount",
-				success: function (response) {
-					var jsonObj = $.parseJSON(response);
-					alert(response);
-				},
-        		error: function () {
-					alert("Error loading data! Please try again.");
-				}	
-			});
-		}	
+		var selectCategoryItem;
+		var reverseArr;
+		var selectDayOfWeekItem;
+		var sortObjectByKey;
 		
 		$(function() {
+			
+			var menuCategoryItems = [];
+			
+			var dataArr_PerProductCateSalesVolume = [];
+			var keyArr_PerProductCateSalesVolume = [];
+			
+			var area_chart = Morris.Area({
+		        element: 'per-product-category-sales-volume-chart',
+		        data: dataArr_PerProductCateSalesVolume,
+		        xkey: 'year_month',
+		        ykeys: keyArr_PerProductCateSalesVolume,
+		        labels: keyArr_PerProductCateSalesVolume,
+		        pointSize: 2,
+		        hideHover: 'auto',
+		        resize: true
+			});
+			
+			reverseArr = function(input){
+			    var ret = new Array;
+			    for(var i = input.length-1; i >= 0; i--) {
+			        ret.push(input[i]);
+			    }
+			    return ret;
+			}
+			
+			selectCategoryItem = function(element){ 
+				
+				var selectedItem = $(element).text();
+				$("#menu_cate_items_caption").text(selectedItem);
+				
+				var jsonParams = "{\"category\":\"" + selectedItem + "\"}";
+				
+				$.ajax({
+					type: "POST",
+					data: jsonParams,
+					contentType: 'application/json',
+					dataType: "json",
+					url: "/salestda/api/monthly_product_cate_detail_sales_amount",
+					success: function (response) {
+						var jsonObj = $.parseJSON(response);
+						var dataArr = jsonObj.total_amount;
+						var dateKeyArr = [];	
+						
+						$.each(dataArr, function(key, value){
+							for (var key in value) {
+								if(key!='year_month'){
+									dateKeyArr.push(key);
+								}
+							}
+						});
+						
+						menuCategoryItems = dateKeyArr.filter(function(item,idx,arr){
+						    return idx==arr.indexOf(item);
+						});
+										
+						// clear before items
+						dataArr_PerProductCateSalesVolume.length = 0;
+						keyArr_PerProductCateSalesVolume.length = 0;
+						
+						dataArr_PerProductCateSalesVolume = $.extend(true, [], dataArr);
+						keyArr_PerProductCateSalesVolume = $.extend(true, [], menuCategoryItems);	
+						
+						area_chart.options.labels = keyArr_PerProductCateSalesVolume;
+						area_chart.options.ykeys = keyArr_PerProductCateSalesVolume;
+						area_chart.setData(dataArr_PerProductCateSalesVolume);
+						
+						area_chart.redraw();
+					},
+	        		error: function () {
+						alert("Error loading data! Please try again.");
+					}	
+				});
+			}
+			
+			
+			selectDayOfWeekItem = function(element){
+				
+				var selectedItem;
+				var jsonParams;
+				
+				if(element==null){
+					selectedItem = 'All';
+				} else {
+					selectedItem = $(element).text();
+					$("#timebase_sales_amount_items_caption").text(selectedItem);	
+				}
+				
+				jsonParams = "{\"dayOfWeek\":\"" + selectedItem + "\"}";
+				
+				$.ajax({
+					type: "POST",
+					data: jsonParams,
+					contentType: 'application/json',
+					dataType: "json",
+					url: "/salestda/api/timebase_sales_amount",
+					success: function (response) {
+						var jsonObj = $.parseJSON(response);
+						
+						jsonObj = sortObjectByKey(jsonObj);
+						
+						$("#list_timebase_sales_amount").children().remove();
+						
+						var keyTimeRange;
+						
+						$.each(jsonObj, function(key, value){
+							rangeStartTime = parseInt(key.replace('H',''));
+							rangeEndTime = rangeStartTime + 1;
+							keyTimeRange = rangeStartTime + ":00" + "~"  + rangeEndTime + ":00";
+							
+							var strHtmlItem = '<a href="#" class="list-group-item">'+
+								keyTimeRange + '<span class="pull-right text-muted small"><i class="fa fa-krw fa-fw"></i><em>' + value + '</em></span></a>';			
+							$("#list_timebase_sales_amount").append(strHtmlItem);
+						});
+					},
+	        		error: function () {
+						alert("Error loading data! Please try again.");
+					}	
+				});
+			}
+				
+			sortObjectByKey = function(obj){
+			    var keys = [];
+			    var sorted_obj = {};
+
+			    for(var key in obj){
+			        if(obj.hasOwnProperty(key)){
+			            keys.push(key);
+			        }
+			    }
+			    // sort keys
+			    keys.sort();
+			    // create new array based on Sorted Keys
+			    jQuery.each(keys, function(i, key){
+			        sorted_obj[key] = obj[key];
+			    });
+			    return sorted_obj;
+			}
+			
 			
 			$.ajax({
 				type: "GET",
@@ -105,6 +223,8 @@
 				}	
 			});
 			
+			///////////////////////////////////////////////////////////////////////////////////////////////
+		
 			$.ajax({
 				type: "GET",
 				dataType: "json",
@@ -128,21 +248,24 @@
 					    return idx==arr.indexOf(item);
 					});
 					
+					// clear before items
+					dataArr_PerProductCateSalesVolume.length = 0;
+					keyArr_PerProductCateSalesVolume.length = 0;
+					
+					dataArr_PerProductCateSalesVolume = $.extend(true, [], dataArr);
+					keyArr_PerProductCateSalesVolume = $.extend(true, [], menuCategoryItems);	
+					
+					area_chart.options.labels = keyArr_PerProductCateSalesVolume;
+					area_chart.options.ykeys = keyArr_PerProductCateSalesVolume;
+					area_chart.setData(dataArr_PerProductCateSalesVolume);
+					
+					area_chart.redraw();
+					
 					$.each(menuCategoryItems, function(key, value){
 						$("#menu_cate_items_list").append("<li><a href='#' onclick='selectCategoryItem(this);return false;'>" + value + "</a></li>");
 					});
-					$("#menu_cate_items_list").append("<li><a href='#' onclick='selectCategoryItem(this);return false;'>분류별</a></li>");
+					$("#menu_cate_items_list").append("<li><a href='#' onclick='selectCategoryItem(this);return false;'>Category</a></li>");
 					
-					Morris.Area({
-					        element: 'per-product-category-sales-volume-chart',
-					        data: dataArr,
-					        xkey: 'year_month',
-					        ykeys: menuCategoryItems,
-					        labels: menuCategoryItems,
-					        pointSize: 2,
-					        hideHover: 'auto',
-					        resize: true
-					});
 				},
         		error: function () {
 					alert("Error loading data! Please try again.");
@@ -169,6 +292,8 @@
 					alert("Error loading data! Please try again.");
 				}
 			});
+			
+			selectDayOfWeekItem(null);
 		})
 		
 	</script>
@@ -357,7 +482,7 @@
                             <div class="pull-right">
    								<div class="btn-group">
                                     <button id="menu_cate_items_caption" type="button" class="btn btn-default btn-xs dropdown-toggle" data-toggle="dropdown">
-										분류별
+										Category
                                         <span class="caret"></span>
                                     </button>
                                     <ul id="menu_cate_items_list" class="dropdown-menu pull-right" role="menu">
@@ -378,70 +503,47 @@
                 <div class="col-lg-4">
                     <div class="panel panel-default">
                         <div class="panel-heading">
-                            <i class="fa fa-users fa-fw"></i> VIP 고객 목록
+                            <i class="glyphicon glyphicon-time"></i> 시간대 별 평균 판매액
+                            <div class="pull-right">
+   								<div class="btn-group">
+                                    <button id="timebase_sales_amount_items_caption" type="button" class="btn btn-default btn-xs dropdown-toggle" data-toggle="dropdown">
+										All
+                                        <span class="caret"></span>
+                                    </button>
+                                    <ul id="timebase_sales_amount_items_list" class="dropdown-menu pull-right" role="menu">
+                                    	<!-- Fill Category Items dynamically -->
+                                    	<li><a href='#' onclick='selectDayOfWeekItem(this);return false;'>W-MON</a></li>
+										<li><a href='#' onclick='selectDayOfWeekItem(this);return false;'>W-TUE</a></li>
+										<li><a href='#' onclick='selectDayOfWeekItem(this);return false;'>W-WED</a></li>
+										<li><a href='#' onclick='selectDayOfWeekItem(this);return false;'>W-THU</a></li>
+										<li><a href='#' onclick='selectDayOfWeekItem(this);return false;'>W-FRI</a></li>
+										<li><a href='#' onclick='selectDayOfWeekItem(this);return false;'>W-SAT</a></li>
+										<li><a href='#' onclick='selectDayOfWeekItem(this);return false;'>W-SUN</a></li>
+										<li><a href='#' onclick='selectDayOfWeekItem(this);return false;'>All</a></li>
+                                    </ul>
+                                </div>
+                            </div>
                         </div>
                         <!-- /.panel-heading -->
                         <div class="panel-body">
-                            <div class="list-group">
-                                <a href="#" class="list-group-item">
-                                    <i class="fa fa-comment fa-fw"></i> New Comment
-                                    <span class="pull-right text-muted small"><em>4 minutes ago</em>
-                                    </span>
-                                </a>
-                                <a href="#" class="list-group-item">
-                                    <i class="fa fa-twitter fa-fw"></i> 3 New Followers
-                                    <span class="pull-right text-muted small"><em>12 minutes ago</em>
-                                    </span>
-                                </a>
-                                <a href="#" class="list-group-item">
-                                    <i class="fa fa-envelope fa-fw"></i> Message Sent
-                                    <span class="pull-right text-muted small"><em>27 minutes ago</em>
-                                    </span>
-                                </a>
-                                <a href="#" class="list-group-item">
-                                    <i class="fa fa-tasks fa-fw"></i> New Task
-                                    <span class="pull-right text-muted small"><em>43 minutes ago</em>
-                                    </span>
-                                </a>
-                                <a href="#" class="list-group-item">
-                                    <i class="fa fa-upload fa-fw"></i> Server Rebooted
-                                    <span class="pull-right text-muted small"><em>11:32 AM</em>
-                                    </span>
-                                </a>
-                                <a href="#" class="list-group-item">
-                                    <i class="fa fa-bolt fa-fw"></i> Server Crashed!
-                                    <span class="pull-right text-muted small"><em>11:13 AM</em>
-                                    </span>
-                                </a>
-                                <a href="#" class="list-group-item">
-                                    <i class="fa fa-warning fa-fw"></i> Server Not Responding
-                                    <span class="pull-right text-muted small"><em>10:57 AM</em>
-                                    </span>
-                                </a>
-                                <a href="#" class="list-group-item">
-                                    <i class="fa fa-shopping-cart fa-fw"></i> New Order Placed
-                                    <span class="pull-right text-muted small"><em>9:49 AM</em>
-                                    </span>
-                                </a>
-                                <a href="#" class="list-group-item">
-                                    <i class="fa fa-money fa-fw"></i> Payment Received
-                                    <span class="pull-right text-muted small"><em>Yesterday</em>
-                                    </span>
-                                </a>
+                            <div id="list_timebase_sales_amount" class="list-group">
+	                            <!--
+	                                <a href="#" class="list-group-item">
+	                                    AM:10~11
+	                                    <span class="pull-right text-muted small"><em>4 minutes ago</em>
+	                                    </span>
+	                                </a>
+	                                <a href="#" class="list-group-item">
+	                                    AM:11~12
+	                                    <span class="pull-right text-muted small"><em>12 minutes ago</em>
+	                                    </span>
+	                                </a>
+	                            -->
                             </div>
                             <!-- /.list-group -->
+							<!--                            
                             <a href="#" class="btn btn-default btn-block">View All Alerts</a>
-                        </div>
-                        <!-- /.panel-body -->
-                    </div>
-                    <!-- /.panel -->
-                    <div class="panel panel-default">
-                        <div class="panel-heading">
-                            <i class="fa fa-bar-chart-o fa-fw"></i> Donut Chart Example
-                        </div>
-                        <div class="panel-body">
-                            <div id="morris-donut-chart"></div>
-                            <a href="#" class="btn btn-default btn-block">View Details</a>
+                        	-->
                         </div>
                         <!-- /.panel-body -->
                     </div>
@@ -468,9 +570,6 @@
     <!-- Morris Charts JavaScript -->
     <script src="../bower_components/raphael/raphael-min.js"></script>
     <script src="../bower_components/morrisjs/morris.min.js"></script>
- <!--   
-    <script src="../js/morris-data.js"></script>
--->
 
     <!-- Custom Theme JavaScript -->
     <script src="../dist/js/sb-admin-2.js"></script>

@@ -134,14 +134,13 @@ STATIC_ROOT = os.path.join(BASE_DIR, 'salestda')
 
 
 #2. For Deployment  
-"""
-STATIC_ROOT = os.path.join(BASE_DIR, 'statics')   # collectstatic would generate static resource to here.
-STATIC_URL = '/static/'
+# STATIC_ROOT = os.path.join(BASE_DIR, 'statics')   # collectstatic would generate static resource to here.
+# STATIC_URL = '/static/'
 
-STATICFILES_DIRS = (
-    os.path.join(BASE_DIR, 'salestda/static'),
-)
-"""
+#STATICFILES_DIRS = (
+#    os.path.join(BASE_DIR, 'salestda/static'),
+#)
+
 
 STATICFILES_FINDERS = (
     'django.contrib.staticfiles.finders.FileSystemFinder',
